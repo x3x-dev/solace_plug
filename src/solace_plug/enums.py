@@ -1,13 +1,13 @@
-from enum import Enum
+from enum import StrEnum
 
-class PublishStatus(str, Enum):
+class PublishStatus(StrEnum):
     """Result of a publish operation."""
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
     TIMEOUT = "TIMEOUT"
 
 
-class CircuitState(str, Enum):
+class CircuitState(StrEnum):
     """State of the circuit breaker (for fault tolerance)."""
     CLOSED = "CLOSED"
     OPEN = "OPEN"

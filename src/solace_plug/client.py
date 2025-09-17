@@ -1,13 +1,9 @@
 import logging
+import asyncio
 from contextlib import contextmanager, asynccontextmanager
 import typing as t
-from solace.messaging.messaging_service import MessagingService, MessagingServiceBuilder
-from solace.messaging.config.solace_properties import SolaceProperties
-from solace.messaging.config.authentication_strategy import BasicUserNamePassword
-import asyncio
-
-log = logging.getLogger("solace-plug")
-
+from solace.messaging.messaging_service import MessagingService
+from .log import log
 
 class SolaceClient:
     """
@@ -27,25 +23,26 @@ class SolaceClient:
         self.vpn = vpn
         self.username = username
         self.password = password
-        self.client_name = client_name
+        self.client_name = client_name or f"solace-plug-{id(self)}"
         self._service: t.Optional[MessagingService] = None
         self._connected = False
 
+        # Connection properties
+        self._broker_props = {
+            "solace.messaging.transport.host": host,
+            "solace.messaging.service.vpn-name": vpn,
+            "solace.messaging.authentication.scheme.basic.username": username,
+            "solace.messaging.authentication.scheme.basic.password": password,
+            "solace.messaging.client.name": self.client_name
+        }
+
     def connect(self):
         """Connect to Solace"""
-        if not self._connected:
+        if self._connected:
             return
 
         log.info("Connecting to Solace at %s (vpn=%s)...", self.host, self.vpn)
-
-        props = SolaceProperties()
-        props.host = self.host
-        props.vpn_name = self.vpn
-        props.authentication_strategy = BasicUserNamePassword(
-            self.username, self.password
-        )
-
-        self._service = MessagingServiceBuilder().from_properties(props).build()
+        self._service = MessagingService.builder().from_properties(self._broker_props).build()
         self._service.connect()
         self._connected = True
         log.info("Connected to Solace")
@@ -76,3 +73,5 @@ class AsyncSolaceClient:
     """
 
     pass
+
+

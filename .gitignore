@@ -2,3 +2,8 @@ context
 **.venv
 **venv
 **.env
+**__pycache__
+**.mypy_cache
+**.vscode
+**idea
+**manual_test.py

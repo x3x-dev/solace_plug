@@ -2,18 +2,6 @@ from pydantic import BaseModel
 from solace_plug.enums import PublishStatus
 
 
-class ConnectionResult(BaseModel):
-    """
-    Represents the outcome of attempting to connect to Solace.
-
-    Fields:
-        success: True if connection succeeded, False otherwise.
-        details: Optional description or error details about the connection attempt.
-    """
-    success: bool
-    details: str | None = None
-
-
 class PublishResult(BaseModel):
     """
     Represents the outcome of a publish operation.

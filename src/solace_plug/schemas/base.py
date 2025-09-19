@@ -68,13 +68,11 @@ class IncomingMessage(BaseModel):
     Provides:
       - `topic`: topic the message was published to
       - `message_id`: unique message ID if set by publisher
-      - `headers`: low-level broker metadata (destination, sender_id, etc.)
       - `properties`: user-defined metadata set at publish time
       - `event`: the actual BaseEvent payload
     """
     topic: str
     message_id: str | None = None
-    headers: dict[str, t.Any] = Field(default_factory=dict)
     properties: dict[str, t.Any] = Field(default_factory=dict)
     event: BaseEvent
 

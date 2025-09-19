@@ -79,7 +79,7 @@ class IncomingMessage(BaseModel):
     event: BaseEvent
 
 
-class IncomingTopicMessage(IncomingMessage):
+class IncomingDirectMessage(IncomingMessage):
     """
     Message received from a topic (direct delivery).
 
@@ -90,7 +90,7 @@ class IncomingTopicMessage(IncomingMessage):
     delivery_mode: str = "direct"
 
 
-class IncomingQueueMessage(IncomingMessage):
+class IncomingPersistentMessage(IncomingMessage):
     """
     Message received from a queue (persistent delivery).
 

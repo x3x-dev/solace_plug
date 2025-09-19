@@ -45,7 +45,7 @@ class BaseEvent(BaseModel):
     """
     id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    source: str
+    source: str 
     payload: dict
 
     def to_json(self) -> str:

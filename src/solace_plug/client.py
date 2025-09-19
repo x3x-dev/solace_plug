@@ -81,6 +81,12 @@ class SolaceClient:
         self._service.disconnect()
         self._connected = False
         log.info("Disconnected from Solace")
+        
+    def get_messaging_service(self):
+        """Get the messaging service instance"""
+        if not self._connected:
+            raise SolaceConnectionError("Connect to Solace before using messaging service")
+        return self._service
 
     @contextmanager
     def session(self):
@@ -168,6 +174,12 @@ class AsyncSolaceClient:
             await loop.run_in_executor(None, self._service.disconnect)
             self._connected = False
             log.info("Disconnected from Solace")
+
+    def get_messaging_service(self):
+        """Get the messaging service instance"""
+        if not self._connected:
+            raise SolaceConnectionError("Connect to Solace before using messaging service")
+        return self._service
 
     @asynccontextmanager
     async def session(self):

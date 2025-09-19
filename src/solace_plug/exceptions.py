@@ -6,7 +6,7 @@ class SolaceConnectionError(SolaceError):
     """Raised when connection to Solace fails."""
 
 
-class PublishTimeoutError(SolaceError):
+class PublishError(SolaceError):
     """Raised when a publish operation times out."""
 
 

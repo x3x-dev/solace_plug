@@ -1,10 +1,9 @@
 import pytest 
 import asyncio
-from solace_plug.client import SolaceClient
+from solace_plug.client import SolaceClient, AsyncSolaceClient
 from solace_plug.publishers.direct import AsyncDirectPublisher
 from solace_plug.subscribers.direct import AsyncDirectSubscriber
 from solace_plug.schemas.base import BaseEvent
-
 
 
 @pytest.mark.integration
@@ -18,8 +17,7 @@ async def test_async_direct_pub_sub_flow():
     async def on_message(msg):
         received_messages.append(msg)
 
-
-    with SolaceClient().session() as client:
+    async with AsyncSolaceClient().session() as client:
         subscriber = AsyncDirectSubscriber(client, topics=["test"], on_message=on_message)
         publisher = AsyncDirectPublisher(client)
 

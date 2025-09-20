@@ -26,6 +26,8 @@ solace-pubsubplus = "^1.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
+pytest-asyncio = "^1.2.0"
+pytest-mock = "^3.15.1"
 mypy = "^1.18.1"
 ruff = "^0.13.0"
 black = "^25.1.0"
@@ -38,6 +40,13 @@ module = [
     "solace.*",
 ]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: Integration tests, may require Solace Broker",
+]
+addopts = "-v --tb=short"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

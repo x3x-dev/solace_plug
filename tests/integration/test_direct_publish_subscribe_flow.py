@@ -3,7 +3,6 @@ import pytest
 import asyncio
 import time
 import threading
-from solace_plug.client import SolaceClient, AsyncSolaceClient
 from solace_plug.publishers.direct import AsyncDirectPublisher, DirectPublisher
 from solace_plug.subscribers.direct import AsyncDirectSubscriber, DirectSubscriber
 from solace_plug.schemas.base import BaseEvent

@@ -16,7 +16,7 @@ jobs:
         ports:
           - 55554:55554   # SMF (Solace Messaging) plaintext
           - 55555:55555   # SMF+TLS
-          - 8080:8080     # Web admin UI
+          # - 8080:8080     # Web admin UI
         options: >-
           --shm-size=1g
           --ulimit nofile=1048576:1048576
@@ -38,7 +38,7 @@ jobs:
       - name: Wait for Solace broker to be ready
         uses: iFaxity/wait-on-action@v1
         with:
-          resource: http://localhost:8080
+          resource: tcp:localhost:55554
           timeout: 60000 # ms
           
       - name: Run integration tests

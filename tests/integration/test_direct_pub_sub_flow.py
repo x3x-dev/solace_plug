@@ -10,6 +10,7 @@ from solace_plug.schemas.base import BaseEvent
 
 @pytest.mark.integration
 def test_direct_pub_sub_flow():
+    """Test the direct pub sub flow"""
     received_messages = []
     def on_message(msg):
         received_messages.append(msg)
@@ -27,8 +28,31 @@ def test_direct_pub_sub_flow():
 
 
 @pytest.mark.integration
+def test_subscriber_can_listen_to_multiple_topics():
+    """Test that a subscriber can listen to multiple topics."""
+    received_messages = []
+    def on_message(msg):
+        received_messages.append(msg)
+
+    with SolaceClient().session() as client:
+        topics = ["test", "test2", "test3"]
+        subscriber = DirectSubscriber(client, topics=topics, on_message=on_message)
+        publisher = DirectPublisher(client)
+
+        with publisher, subscriber:
+            for topic in topics:
+                publisher.publish(topic, BaseEvent(source=topic, payload={topic: topic}))
+                time.sleep(1)
+            
+            assert len(received_messages) == len(topics)
+            
+
+
+@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_async_direct_pub_sub_flow():
+
+    
     received_messages = []
     async def on_message(msg):
         received_messages.append(msg)

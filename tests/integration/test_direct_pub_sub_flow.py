@@ -1,14 +1,30 @@
+
 import pytest 
 import asyncio
+import time
 from solace_plug.client import SolaceClient, AsyncSolaceClient
-from solace_plug.publishers.direct import AsyncDirectPublisher
-from solace_plug.subscribers.direct import AsyncDirectSubscriber
+from solace_plug.publishers.direct import AsyncDirectPublisher, DirectPublisher
+from solace_plug.subscribers.direct import AsyncDirectSubscriber, DirectSubscriber
 from solace_plug.schemas.base import BaseEvent
 
 
 @pytest.mark.integration
 def test_direct_pub_sub_flow():
-    pass
+    received_messages = []
+    def on_message(msg):
+        received_messages.append(msg)
+
+    with SolaceClient().session() as client:
+        subscriber = DirectSubscriber(client, topics=["test"], on_message=on_message)
+        publisher = DirectPublisher(client)
+
+        with publisher, subscriber:
+            publisher.publish("test", BaseEvent(source="test", payload={"test": "test"}))
+            time.sleep(1)
+            assert len(received_messages) == 1
+            assert received_messages[0].event.source == "test"
+            assert received_messages[0].event.payload == {"test": "test"}
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -28,4 +44,6 @@ async def test_async_direct_pub_sub_flow():
             assert len(received_messages) == 1
             assert received_messages[0].event.source == "test"
             assert received_messages[0].event.payload == {"test": "test"}
+
+
 

@@ -20,12 +20,6 @@ jobs:
         options: >-
           --shm-size=1g
           --ulimit nofile=2448:2448
-        # wait until broker is ready
-        healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-          interval: 30s
-          timeout: 10s
-          retries: 10
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +35,13 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Run tests
+      - name: Wait for Solace broker to be ready
+        uses: iFaxity/wait-on-action@v1
+        with:
+          resource: http://localhost:8080
+          timeout: 60000 # ms
+
+      - name: Run integration tests
         env:
           SOLACE_HOST: "tcp://localhost:55554"
           SOLACE_VPN: "default"

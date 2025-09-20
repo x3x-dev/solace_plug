@@ -35,12 +35,6 @@ jobs:
           pip install poetry
           poetry install
 
-      - name: Wait for Solace broker to be ready
-        uses: iFaxity/wait-on-action@v1
-        with:
-          resource: http://localhost:8080
-          timeout: 60000 # ms
-
       - name: Run integration tests
         env:
           SOLACE_HOST: "tcp://localhost:55554"

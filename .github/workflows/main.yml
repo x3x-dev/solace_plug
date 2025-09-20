@@ -48,4 +48,4 @@ jobs:
           SOLACE_USERNAME: "admin"
           SOLACE_PASSWORD: "admin"
         run: |
-          pytest -m integration -v
+          poetry run pytest -m integration -v

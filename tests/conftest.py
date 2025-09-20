@@ -1,5 +1,5 @@
 import pytest
-import asyncio
+import pytest_asyncio
 from solace_plug.client import SolaceClient, AsyncSolaceClient
 
 
@@ -8,7 +8,7 @@ def client():
     with SolaceClient().session() as c:
         yield c
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def async_client():
     async with AsyncSolaceClient().session() as c:
         yield c

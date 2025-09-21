@@ -4,7 +4,7 @@ import pytest_asyncio
 from solace_plug.client import SolaceClient, AsyncSolaceClient
 from solace_plug.exceptions import ClientError
 import time
-
+import asyncio
 log = logging.getLogger("solace_plug")
 
 @pytest.fixture
@@ -16,21 +16,23 @@ def client():
     #     logging.error("Error connecting to Solace: %s", e)
     #     pytest.skip("Solace Broker not available")
     # Retry for 2 minutes
-    c = None
-    timeout = time.time() + 120 # 2 minutes
-    while c is None and time.time() < timeout:
-        try:
-            with SolaceClient().session() as c:
-                c = c
-        except ClientError as e:
-            logging.error("Error connecting to Solace: %s", e)
-            time.sleep(1)
-    
-    if c is None:
-        pytest.skip("Solace Broker not available")
-    
-    yield c
 
+    timeout = time.time() + 120  # 2 minutes
+    last_error = None
+
+    while time.time() < timeout:
+        try:
+            c = SolaceClient()
+            c.connect()
+            yield c
+            c.disconnect()
+            return
+        except ClientError as e:
+            last_error = e
+            logging.warning("Retrying connection: %s", e)
+            time.sleep(1)
+
+    pytest.skip(f"Solace Broker not available: {last_error}")
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -41,17 +43,19 @@ async def async_client():
     #     logging.error("Error connecting to Solace: %s", e)
     #     pytest.skip("Solace Broker not available")
     # Retry for 2 minutes
-    c = None
-    timeout = time.time() + 120 # 2 minutes
-    while c is None and time.time() < timeout:
+    timeout = time.time() + 120  # 2 minutes
+    last_error = None
+
+    while time.time() < timeout:
         try:
-            async with AsyncSolaceClient().session() as c:
-                c = c
+            c = AsyncSolaceClient()
+            await c.connect()
+            yield c
+            await c.disconnect()
+            return
         except ClientError as e:
-            logging.error("Error connecting to Solace: %s", e)
-            time.sleep(1)
-    
-    if c is None:
-        pytest.skip("Solace Broker not available")
-    
-    yield c
+            last_error = e
+            logging.warning("Retrying async connection: %s", e)
+            await asyncio.sleep(1)
+
+    pytest.skip(f"Solace Broker not available: {last_error}")

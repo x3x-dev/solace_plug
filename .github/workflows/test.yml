@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      solace:
+        image: solace/solace-pubsub-standard:latest
+        ports:
+          - 55554:55555   # SMF plaintext
+          - 55556:55556   # SMF routing
+          - 55443:55443   # SMF TLS
+          - 5550:5550     # Health check port
+          - 8080:8080     # Management/SEMP (optional but useful)
+        options: >-
+          --shm-size=1g
+          --ulimit nofile=1048576:1048576
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -U pip
+          pip install poetry
+          poetry install
+
+      - name: Wait for Solace broker to be ready
+        uses: iFaxity/wait-on-action@v1
+        with:
+          resource: tcp:localhost:5550
+          timeout: 120000 # ms
+          
+      - name: Run integration tests
+        env:
+          SOLACE_HOST: "tcp://localhost:55554"
+          SOLACE_VPN: "default"
+          SOLACE_USERNAME: "admin"
+          SOLACE_PASSWORD: "admin"
+        run: |
+          poetry run pytest -m integration -v

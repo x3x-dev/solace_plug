@@ -14,8 +14,11 @@ jobs:
       solace:
         image: solace/solace-pubsub-standard:latest
         ports:
-          - 55554:55555
-          - 8080:8080 
+          - 55554:55555   # SMF plaintext
+          - 55556:55556   # SMF routing
+          - 55443:55443   # SMF TLS
+          - 5550:5550     # Health check port
+          - 8080:8080     # Management/SEMP (optional but useful)
         options: >-
           --shm-size=1g
           --ulimit nofile=1048576:1048576
@@ -37,7 +40,7 @@ jobs:
       - name: Wait for Solace broker to be ready
         uses: iFaxity/wait-on-action@v1
         with:
-          resource: http://localhost:8080/SEMP/v2/config/about
+          resource: tcp:localhost:5550
           timeout: 120000 # ms
           
       - name: Run integration tests

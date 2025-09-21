@@ -14,9 +14,8 @@ jobs:
       solace:
         image: solace/solace-pubsub-standard:latest
         ports:
-          - 55554:55554   # SMF (Solace Messaging) plaintext
-          - 55555:55555   # SMF+TLS
-          - 8080:8080     # Web admin UI
+          - 55554:55555
+          - 8080:8080 
         options: >-
           --shm-size=1g
           --ulimit nofile=1048576:1048576

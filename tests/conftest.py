@@ -16,15 +16,21 @@ def client():
     #     logging.error("Error connecting to Solace: %s", e)
     #     pytest.skip("Solace Broker not available")
     # Retry for 2 minutes
-    for i in range(120):
+    c = None
+    timeout = time.time() + 120 # 2 minutes
+    while c is None and time.time() < timeout:
         try:
             with SolaceClient().session() as c:
-                yield c
+                c = c
         except ClientError as e:
             logging.error("Error connecting to Solace: %s", e)
             time.sleep(1)
+    
+    if c is None:
+        pytest.skip("Solace Broker not available")
+    
+    yield c
 
-   
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -35,10 +41,17 @@ async def async_client():
     #     logging.error("Error connecting to Solace: %s", e)
     #     pytest.skip("Solace Broker not available")
     # Retry for 2 minutes
-    for i in range(120):
+    c = None
+    timeout = time.time() + 120 # 2 minutes
+    while c is None and time.time() < timeout:
         try:
             async with AsyncSolaceClient().session() as c:
-                yield c
+                c = c
         except ClientError as e:
             logging.error("Error connecting to Solace: %s", e)
             time.sleep(1)
+    
+    if c is None:
+        pytest.skip("Solace Broker not available")
+    
+    yield c

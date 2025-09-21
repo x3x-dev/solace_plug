@@ -2,16 +2,20 @@ import asyncio
 from contextlib import contextmanager, asynccontextmanager
 import typing as t
 from solace.messaging.messaging_service import MessagingService
-from .exceptions import SolaceConnectionError
+from solace.messaging.errors.pubsubplus_client_error import IllegalStateError, PubSubPlusClientError
+from .exceptions import ClientError, IllegalStateClientError, SolaceError
+
 from .log import log
 
 
 class SolaceClient:
     """
     Synchronous Solace connection client.
-    For simple scripts and synchronous workflows.
-    """
 
+    Provides blocking connect/disconnect operations for simple scripts
+    and synchronous workflows.
+    """
+    
     def __init__(
         self,
         host: str = "tcp://localhost:55554",
@@ -45,15 +49,12 @@ class SolaceClient:
         """
         Establish a connection to the Solace broker.
 
-        This method blocks until the connection attempt completes.
+        Blocks until the connection completes.
 
         Raises:
-            SolaceConnectionError: If the connection attempt fails or the broker
-            reports an unsuccessful connection.
-
-        Notes:
-            - If the client is already connected, this exits immediately without reconnecting.
-            - On success, no value is returned. On failure, an exception is raised.
+            ClientError: If the broker rejects the connection.
+            IllegalStateClientError: If another connect/disconnect is ongoing.
+            SolaceError: For any other unexpected errors.
         """
         if self._connected:
             return
@@ -63,17 +64,25 @@ class SolaceClient:
                 MessagingService.builder().from_properties(self._broker_props).build()
             )
             self._service.connect()
+
             if not self._service.is_connected:
-                raise SolaceConnectionError("Connection attempt failed")
+                raise ClientError("Connection attempt failed")
 
             self._connected = True
             log.info("Connected to Solace at %s (vpn=%s)", self.host, self.vpn)
-
+        except IllegalStateError as e:
+            raise IllegalStateClientError(f"Illegal state during connect: {e}") from e
+        except PubSubPlusClientError as e:
+            raise ClientError(f"Broker rejected connection: {e}") from e
         except Exception as e:
-            raise SolaceConnectionError(f"Failed to connect: {e}") from e
+            raise SolaceError(f"Unexpected failure: {e}") from e
 
     def disconnect(self):
-        """Disconnect from Solace"""
+        """
+        Disconnect from the Solace broker.
+
+        Safe to call even if not connected.
+        """
         if not self._connected or not self._service:
             return
 
@@ -83,9 +92,14 @@ class SolaceClient:
         log.info("Disconnected from Solace")
         
     def get_messaging_service(self):
-        """Get the messaging service instance"""
+        """
+        Get the underlying `MessagingService` instance.
+
+        Raises:
+            ClientError: If no connection is active.
+        """
         if not self._connected:
-            raise SolaceConnectionError("Connect to Solace before using messaging service")
+            raise ClientError("Connect to Solace before using messaging service")
         return self._service
 
     @contextmanager
@@ -136,13 +150,12 @@ class AsyncSolaceClient:
         """
         Establish a connection to the Solace broker asynchronously.
 
-        This method runs the blocking Solace `.connect()` call in a thread executor
-        to avoid blocking the event loop. It ensures only one task attempts
-        connection at a time using an asyncio lock.
+        Runs the blocking `.connect()` in a thread executor to avoid blocking the loop.
 
         Raises:
-            SolaceConnectionError: If the connection attempt fails or the broker
-            reports an unsuccessful connection.
+            ClientError: If the broker rejects the connection.
+            IllegalStateClientError: If another connect/disconnect is ongoing.
+            SolaceError: For any other unexpected errors.
         """
         async with self._lock:
             if self._connected:
@@ -153,18 +166,29 @@ class AsyncSolaceClient:
             self._service = (
                 MessagingService.builder().from_properties(self._broker_props).build()
             )
+
             try:
                 await loop.run_in_executor(None, self._service.connect)
+
                 if not self._service.is_connected:
-                    raise SolaceConnectionError("Connection attempt failed")
+                    raise ClientError("Connection attempt failed")
 
                 self._connected = True
                 log.info("Connected to Solace")
+
+            except IllegalStateError as e:
+                raise IllegalStateClientError(f"Illegal state during connect: {e}") from e
+            except PubSubPlusClientError as e:
+                raise ClientError(f"Broker rejected connection: {e}") from e
             except Exception as e:
-                raise SolaceConnectionError(f"Failed to connect: {e}") from e
+                raise SolaceError(f"Unexpected failure: {e}") from e
 
     async def disconnect(self) -> None:
-        """Asynchronously disconnect from Solace"""
+        """
+        Disconnect from the Solace broker asynchronously.
+
+        Safe to call even if not connected.
+        """
         async with self._lock:
             if not self._connected or not self._service:
                 return
@@ -176,9 +200,14 @@ class AsyncSolaceClient:
             log.info("Disconnected from Solace")
 
     def get_messaging_service(self):
-        """Get the messaging service instance"""
+        """
+        Get the underlying `MessagingService` instance.
+
+        Raises:
+            ClientError: If no connection is active.
+        """
         if not self._connected:
-            raise SolaceConnectionError("Connect to Solace before using messaging service")
+            raise ClientError("Connect to Solace before using messaging service")
         return self._service
 
     @asynccontextmanager

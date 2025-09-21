@@ -2,7 +2,7 @@ import pytest
 import logging
 import pytest_asyncio
 from solace_plug.client import SolaceClient, AsyncSolaceClient
-from solace_plug.exceptions import SolaceConnectionError 
+from solace_plug.exceptions import ClientError
 
 log = logging.getLogger("solace_plug")
 
@@ -11,7 +11,7 @@ def client():
     try:
         with SolaceClient().session() as c:
             yield c
-    except SolaceConnectionError as e:
+    except ClientError as e:
         logging.error("Error connecting to Solace: %s", e)
         pytest.skip("Solace Broker not available")
 
@@ -21,7 +21,7 @@ async def async_client():
     try:
         async with AsyncSolaceClient().session() as c:
             yield c
-    except SolaceConnectionError:
+    except ClientError as e:
         logging.error("Error connecting to Solace: %s", e)
         pytest.skip("Solace Broker not available")
     

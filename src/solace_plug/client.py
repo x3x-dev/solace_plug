@@ -46,7 +46,7 @@ class SolaceClient:
     def is_connected(self):
         return self._connected
 
-    @retry_on_failure(backoff_factor=5, exceptions=(IllegalStateClientError, ClientError))
+    @retry_on_failure(exceptions=(IllegalStateClientError, ClientError))
     def connect(self) -> None:
         """
         Establish a connection to the Solace broker.
@@ -148,7 +148,7 @@ class AsyncSolaceClient:
     def is_connected(self):
         return self._connected
 
-    @retry_on_failure_async(backoff_factor=5, exceptions=(IllegalStateClientError, ClientError))
+    @retry_on_failure_async(exceptions=(IllegalStateClientError, ClientError))
     async def connect(self) -> None:
         """
         Establish a connection to the Solace broker asynchronously.

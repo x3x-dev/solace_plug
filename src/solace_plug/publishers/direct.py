@@ -10,6 +10,7 @@ from solace.messaging.publisher.direct_message_publisher import (
 )
 from solace_plug.exceptions import PublishError
 from solace_plug.schemas.base import BaseEvent
+from solace_plug.utils.decorators import retry_on_failure
 
 log = logging.getLogger("solace_plug")
 
@@ -74,6 +75,7 @@ class DirectPublisher:
     def _default_failure_handler(self, event):
         log.error("Direct publisher error event: %s", event)
 
+    @retry_on_failure
     def start(self):
         """Start the direct publisher and attach the failure listener."""
         try:
@@ -87,7 +89,8 @@ class DirectPublisher:
             log.info("Direct publisher started.")
         except Exception as e:
             raise PublishError(f"Failed to start direct publisher: {e}") from e
-
+    
+    @retry_on_failure
     def stop(self):
         """Stop and clean up the publisher."""
         if self._publisher:
@@ -98,6 +101,7 @@ class DirectPublisher:
             except Exception as e:
                 raise PublishError(f"Failed to stop publisher: {e}") from e
 
+    @retry_on_failure
     def publish(
         self,
         topic: str,
@@ -202,6 +206,7 @@ class AsyncDirectPublisher:
     async def _default_failure_handler(self, event):
         log.error("Async Direct publisher error event: %s", event)
 
+    @retry_on_failure
     async def start(self):
         """Start the direct publisher and attach the failure listener."""
         self._event_loop = asyncio.get_running_loop()
@@ -218,6 +223,7 @@ class AsyncDirectPublisher:
         except Exception as e:
             raise PublishError(f"Failed to start direct publisher: {e}") from e
 
+    @retry_on_failure
     async def stop(self):
         """Stop and clean up the publisher."""
         if self._publisher:
@@ -228,6 +234,7 @@ class AsyncDirectPublisher:
             except Exception as e:
                 raise PublishError(f"Failed to stop publisher: {e}") from e
 
+    @retry_on_failure
     async def publish(
         self,
         topic: str,

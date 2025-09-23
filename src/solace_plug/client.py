@@ -4,7 +4,7 @@ import typing as t
 from solace.messaging.messaging_service import MessagingService
 from solace.messaging.errors.pubsubplus_client_error import IllegalStateError, PubSubPlusClientError
 from .exceptions import ClientError, IllegalStateClientError, SolaceError
-from .utils.decorators import retry_on_failure, retry_on_failure_async
+from .utils.decorators import retry_on_failure
 
 from .log import log
 
@@ -148,7 +148,7 @@ class AsyncSolaceClient:
     def is_connected(self):
         return self._connected
 
-    @retry_on_failure_async(exceptions=(IllegalStateClientError, ClientError))
+    @retry_on_failure(exceptions=(IllegalStateClientError, ClientError))
     async def connect(self) -> None:
         """
         Establish a connection to the Solace broker asynchronously.

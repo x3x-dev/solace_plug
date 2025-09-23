@@ -5,6 +5,7 @@ from solace.messaging.resources.topic_subscription import TopicSubscription
 from solace.messaging.receiver.message_receiver import MessageHandler, InboundMessage
 from solace_plug.exceptions import SubscribeError
 from solace_plug.schemas.base import IncomingDirectMessage, BaseEvent
+from solace_plug.utils.decorators import retry_on_failure
 
 log = logging.getLogger("solace_plug")
 
@@ -70,6 +71,7 @@ class DirectSubscriber:
             "[DirectSubscriber] New message:\n%s", message.model_dump_json(indent=4)
         )
 
+    @retry_on_failure
     def start(self):
         """Start the direct subscriber and begin receiving messages."""
         try:
@@ -85,6 +87,7 @@ class DirectSubscriber:
         except Exception as e:
             raise SubscribeError(f"Failed to start direct subscriber: {e}") from e
 
+    @retry_on_failure
     def stop(self):
         """Stop and clean up the subscriber."""
         if self._receiver:
@@ -165,6 +168,7 @@ class AsyncDirectSubscriber:
             message.model_dump_json(indent=4),
         )
 
+    @retry_on_failure
     async def start(self):
         """Start the async subscriber."""
         # Capture current event loop
@@ -185,6 +189,7 @@ class AsyncDirectSubscriber:
         except Exception as e:
             raise SubscribeError(f"Failed to start async subscriber: {e}") from e
 
+    @retry_on_failure
     async def stop(self):
         """Stop the async subscriber."""
         if self._receiver:

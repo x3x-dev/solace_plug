@@ -183,7 +183,9 @@ class AsyncDirectSubscriber:
                 .with_subscriptions(subs)
                 .build()
             )
-            self._receiver.start()
+            
+            await self._event_loop.run_in_executor(None, self._receiver.start)
+            
             self._receiver.receive_async(self._handler)
             log.info("Async direct subscriber started on topics: %s", self._topics)
         except Exception as e:
@@ -194,7 +196,7 @@ class AsyncDirectSubscriber:
         """Stop the async subscriber."""
         if self._receiver:
             try:
-                self._receiver.terminate()
+                await self._event_loop.run_in_executor(None, self._receiver.terminate)
                 self._receiver = None
                 log.info("Async direct subscriber stopped.")
             except Exception as e:

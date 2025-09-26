@@ -59,7 +59,6 @@ class MessageRejectedError(PublishError):
 class SubscribeError(SolaceError):
     """Base error for subscribe-related failures."""
 
-
 def _translate_exception(err: Exception) -> "SolaceError":
     if isinstance(err, SolacePublisherOverflowError):
         raise PublisherOverflowError(str(err)) from err

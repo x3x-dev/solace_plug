@@ -218,7 +218,9 @@ class AsyncDirectPublisher:
             self._publisher.set_publish_failure_listener(
                 _AsyncPublishFailureListener(self._on_failure, self._event_loop)
             )
-            self._publisher.start()
+            
+            await self._event_loop.run_in_executor(None, self._publisher.start)
+            
             log.info("Direct publisher started.")
         except Exception as e:
             raise PublishError(f"Failed to start direct publisher: {e}") from e
@@ -228,7 +230,7 @@ class AsyncDirectPublisher:
         """Stop and clean up the publisher."""
         if self._publisher:
             try:
-                self._publisher.terminate()
+                await self._event_loop.run_in_executor(None, self._publisher.terminate)
                 self._publisher = None
                 log.info("Direct publisher stopped.")
             except Exception as e:

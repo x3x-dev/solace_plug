@@ -3,10 +3,13 @@ from contextlib import contextmanager, asynccontextmanager
 import typing as t
 from solace.messaging.messaging_service import MessagingService
 from solace.messaging.errors.pubsubplus_client_error import IllegalStateError, PubSubPlusClientError
-from .exceptions import ClientError, IllegalStateClientError, SolaceError
+from .exceptions import ClientError, IllegalStateClientError, SolaceError, _translate_exception
 from .utils.decorators import retry_on_failure
-
+from solace.messaging.publisher.persistent_message_publisher import PersistentMessagePublisher
 from .log import log
+
+
+#TODO: Add service reconnection, interruption handlers to the message client
 
 
 class SolaceClient:
@@ -72,12 +75,8 @@ class SolaceClient:
 
             self._connected = True
             log.info("Connected to Solace at %s (vpn=%s)", self.host, self.vpn)
-        except IllegalStateError as e:
-            raise IllegalStateClientError(f"Illegal state during connect: {e}") from e
-        except PubSubPlusClientError as e:
-            raise ClientError(f"Broker rejected connection: {e}") from e
         except Exception as e:
-            raise SolaceError(f"Unexpected failure: {e}") from e
+            _translate_exception(e)
 
     def disconnect(self):
         """
@@ -178,13 +177,8 @@ class AsyncSolaceClient:
 
                 self._connected = True
                 log.info("Connected to Solace")
-
-            except IllegalStateError as e:
-                raise IllegalStateClientError(f"Illegal state during connect: {e}") from e
-            except PubSubPlusClientError as e:
-                raise ClientError(f"Broker rejected connection: {e}") from e
             except Exception as e:
-                raise SolaceError(f"Unexpected failure: {e}") from e
+                _translate_exception(e)
 
     async def disconnect(self) -> None:
         """

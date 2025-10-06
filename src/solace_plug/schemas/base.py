@@ -59,45 +59,9 @@ class BaseEvent(BaseModel):
         return cls.model_validate_json(data)
 
 
-class IncomingMessage(BaseModel):
+class BinaryEvent(BaseEvent):
     """
-    Base class for any Solace message delivered to a subscriber.
-
-    Contains fields common to both topic-based (direct) and queue-based (persistent) messages.
-
-    Provides:
-      - `topic`: topic the message was published to
-      - `message_id`: unique message ID if set by publisher
-      - `properties`: user-defined metadata set at publish time
-      - `event`: the actual BaseEvent payload
+    Represents a binary payload carried by a Solace message.
     """
-    topic: str
-    message_id: str | None = None
-    properties: dict[str, t.Any] = Field(default_factory=dict)
-    event: BaseEvent
-
-
-class IncomingDirectMessage(IncomingMessage):
-    """
-    Message received from a topic (direct delivery).
-
-    Provides:
-      - `delivery_mode`: always `"direct"`
-      - All fields from IncomingMessage
-    """
-    delivery_mode: str = "direct"
-
-
-class IncomingPersistentMessage(IncomingMessage):
-    """
-    Message received from a queue (persistent delivery).
-
-    Provides:
-      - `queue`: name of the queue the message was consumed from
-      - `ack_id`: optional broker-generated ack handle (if manual ack is enabled)
-      - `delivery_mode`: always `"persistent"`
-      - All fields from IncomingMessage
-    """
-    queue: str
-    ack_id: str | None = None
-    delivery_mode: str = "persistent"
+    data: bytes
+    encoding: str | None = None  # optional metadata (e.g., "image/png", "application/pdf")
